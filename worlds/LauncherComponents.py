@@ -97,6 +97,8 @@ components: List[Component] = [
               file_identifier=SuffixIdentifier('.apzl')),
     #Kingdom Hearts 2
     Component('KH2 Client', "KH2Client"),
+    # Rift Wizard
+    Component('RiftWizard Client', 'RiftWizardClient'),
 ]
 
 
