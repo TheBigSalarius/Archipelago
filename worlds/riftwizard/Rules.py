@@ -1,6 +1,6 @@
 from BaseClasses import MultiWorld
-from Archipelago.worlds.AutoWorld import LogicMixin
-from Archipelago.worlds.generic.Rules import set_rule
+from ..AutoWorld import LogicMixin
+from ..generic.Rules import set_rule
 
 
 class RiftWizardLogic(LogicMixin):

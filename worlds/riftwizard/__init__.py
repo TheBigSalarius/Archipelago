@@ -6,7 +6,7 @@ from .Items import event_item_pairs, item_pool, item_table
 from .Locations import location_table
 from .Regions import create_regions
 from .Rules import set_rules
-from Archipelago.worlds.AutoWorld import WebWorld, World
+from ..AutoWorld import WebWorld, World
 from .Options import riftwizard_options
 
 
