@@ -64,7 +64,7 @@ class RiftWizardContext(CommonContext):
             if not os.path.isdir(mod_riftwizard):
                 print_error_and_close("RiftWizardClient couldn't find /mods folder in RiftWizard Directory. "
                                       "Reinstall RiftWizard to attempt to fix this error")
-            if not os.path.isdir(mod_riftwizard + "/Archipelago"):
+            if not os.path.isdir(mod_riftwizard + "/ArchipelagoMod"):
                 print_error_and_close("RiftWizardClient couldn't find the Archipelago Mod for RiftWizard. "
                                       "Ensure the Archipelago Mod is in the /mods folder of the RiftWizard Directory")
         else:
