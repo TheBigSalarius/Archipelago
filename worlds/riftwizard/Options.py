@@ -31,10 +31,33 @@ class DoubleManaDots(Range):
     range_end = 75
     default = 0
 
+class ConsumableCount(Range):
+    """
+    Specifies the amount of Consumable checks to be in the item pool (replaces consumables with AP check based on step)
+    """
+    display_name = "Consumable Count"
+    range_start = 0
+    range_end = 20
+    default = 0
+
+
+class ConsumableStep(Range):
+    """
+    Specifies the amount of normal consumable pickups between consumable checks.
+    The step amount counts down for each consumable picked up.
+    Upon reaching 0 the next consumable pickup grants a check instead of the collectable item.
+    """
+    display_name = "Consumable Steps"
+    range_start = 5
+    range_end = 20
+    default = 10
+
 
 riftwizard_options: typing.Dict[str, type(Option)] = {
     "goal": Goal,
     "floor_goal": FloorGoal,
     "double_mana_dots": DoubleManaDots,
-    "death_link": DeathLink,
+    "consumable_count": ConsumableCount,
+    "consumable_steps": ConsumableStep,
+    "death_link": DeathLink
 }
