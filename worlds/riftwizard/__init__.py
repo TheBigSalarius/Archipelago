@@ -66,6 +66,11 @@ class RiftWizardWorld(World):
                 item = RiftWizardItem("Mana Dot", self.player)
                 pool.append(item)
 
+        # Add the number of consumables equal to the consumable count (number of consumable locations added)
+        for i in range(self.multiworld.consumable_count[self.player]):
+            item = RiftWizardItem("Consumable", self.player)
+            pool.append(item)
+
         self.multiworld.itempool += pool
 
         # Pair up our event locations with our event items (Victory in this case)
