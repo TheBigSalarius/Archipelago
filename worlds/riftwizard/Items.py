@@ -13,6 +13,7 @@ class ItemData(typing.NamedTuple):
 item_table: Dict[str, ItemData] = {
     'Mana Dot': ItemData(18001, True),
     'Double Mana Dot': ItemData(18002, True),
+    'Consumable': ItemData(18003, False),
     # Event Items
     'Victory': ItemData(None, True, True)
 
