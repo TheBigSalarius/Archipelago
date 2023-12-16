@@ -14,7 +14,6 @@ def launch_client():
     launch_subprocess(launch, name="RiftWizard Client")
 
 
-components.append(Component("RiftWizard Client", "RiftWizardClient", func=launch_client, component_type=Type.CLIENT))
 
 class RiftWizardWeb(WebWorld):
     theme = 'stone'
@@ -31,7 +30,7 @@ class RiftWizardWeb(WebWorld):
 
 class RiftWizardWorld(World):
     """
-    Rift Wizard is a tough as nails fantasy roguelike featuring challenging turn based combat and deep open-ended
+    Rift Wizard is a tough as nails fantasy roguelike featuring challenging turn based combat and deep open ended
     character building. Craft your spellbook from over 100 unique spells and abilities and fight your way through
     a series of procedurally generated challenges to defeat your nemesis.
     """
