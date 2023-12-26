@@ -36,7 +36,7 @@ which will contain a `riftwizard.yaml`
 riftwizard_options:
   # Locate the Rift Wizard root directory on your system.
   # This is used by the Rift Wizard client, so it knows where to send communication files to
-  root_directory: "C:/Program Files (x86)/Steam/steamapps/common/Rift Wizard/RiftWizard"```
+  root_directory: "C:/Program Files (x86)/Steam/steamapps/common/Rift Wizard/RiftWizard"
 ```
 *Note: If you have installed Rift Wizard in a different location you'll need to update the path on the last line.*
 
