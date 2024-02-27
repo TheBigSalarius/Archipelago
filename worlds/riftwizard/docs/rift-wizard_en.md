@@ -19,8 +19,6 @@ an experience customized for their taste, and different players in the same mult
 
 ### Where do I get a YAML file?
 
-You can customize your settings by visiting the [Rift Wizard Settings Page](/games/Rift%20Wizard/player-settings).
-
 A template yaml can be created by launching the **ArchipelagoLauncher.exe** in the main Archipelago install folder 
 (by default `C:\ProgramData\Archipelago`) and selecting **Generate Template Settings**. This will open the templates folder
 which will contain a `riftwizard.yaml`
