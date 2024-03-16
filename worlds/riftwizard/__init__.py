@@ -9,12 +9,18 @@ from .Rules import set_rules
 from ..AutoWorld import WebWorld, World
 from .Options import riftwizard_options
 from worlds.LauncherComponents import Component, components, Type, launch_subprocess
+import worlds.LauncherComponents as LauncherComponents
 def launch_client():
     from .Client import launch
     launch_subprocess(launch, name="RiftWizard Client")
 
-
-
+LauncherComponents.components.append(
+    LauncherComponents.Component(
+        "Riftwizard Client",
+        func=launch_client,
+        component_type=LauncherComponents.Type.CLIENT
+    )
+)
 class RiftWizardWeb(WebWorld):
     theme = 'stone'
     tutorials = [Tutorial(
@@ -45,8 +51,30 @@ class RiftWizardWorld(World):
     location_name_to_id = location_table
 
     def create_items(self):
-        # Create item pool and add any double dots first (based on options)
+
+        #Progression requirements for Mordred and Procedural goals
+        if self.multiworld.goal[self.player] == 1:
+            progreq = self.multiworld.difficulty[self.player] * (self.multiworld.floor_goal[self.player]-1)
+
+        if self.multiworld.goal[self.player] == 0:
+            progreq = self.multiworld.difficulty[self.player] * 25
+
+
+        progcheck = 0
+        ddcheck = self.multiworld.double_mana_dots[self.player]
+
+        # Create item pool
         pool = []
+
+        # Add any traps first (based on options)
+        for i in range(self.multiworld.traps[self.player]):
+            item = RiftWizardItem('Trap', self.player)
+        #    item2 = RiftWizardItem('Double Mana Dot', self.player)
+        #    if self.multiworld.traps[self.player]
+        #        pool.append(item2)
+            pool.append(item)
+
+        # Add any double dots first (based on options)
         for i in range(self.multiworld.double_mana_dots[self.player]):
             item = RiftWizardItem('Double Mana Dot', self.player)
             pool.append(item)
@@ -54,20 +82,57 @@ class RiftWizardWorld(World):
         #                    item = RiftWizardItem(name, self.player)
         #                    pool.append(item)
 
-        # Removes Double Dots is too many are randomly chosen when floor goal limits the pool
+        # Removes Double Dots/Traps if too many are randomly chosen when floor goal limits the pool
         if self.multiworld.goal[self.player] == 1:
             while len(pool) > (self.multiworld.floor_goal[self.player]-1)*3:
-                item = RiftWizardItem('Double Mana Dot', self.player)
-                pool.remove(item)
-        # Adds Mana Dots to fill custom pool size when floor goal limits the pool
-        if self.multiworld.goal[self.player] == 1:
-            while len(pool) < (self.multiworld.floor_goal[self.player]-1)*3:
+                print(ddcheck *2)
+                print(len(pool))
+                if (ddcheck *2) > progreq + 1 :
+                    item = RiftWizardItem('Double Mana Dot', self.player)
+                    ddcheck -= 1
+                    pool.remove(item)
+                else:
+                    item = RiftWizardItem('Trap', self.player)
+                    pool.remove(item)
+
+        # Removes Double Dots/Traps if too many are chosen for Mordred goal
+        if self.multiworld.goal[self.player] == 0:
+            while len(pool) > 75:
+                if (ddcheck *2) > progreq + 1 :
+                    item = RiftWizardItem('Double Mana Dot', self.player)
+                    ddcheck -= 1
+                    pool.remove(item)
+                else:
+                    item = RiftWizardItem('Trap', self.player)
+                    pool.remove(item)
+
+        # Always 75 items on Mordred goal so this fills the diff between number of double dots and rest of the locations
+        if self.multiworld.goal[self.player] == 0:
+            progcheck = (ddcheck *2)
+            while progcheck < progreq:
+                if len(pool) == 75:
+                    item = RiftWizardItem("Trap", self.player)
+                    pool.remove(item)
+                if len(pool) < 75:
+                    item = RiftWizardItem("Mana Dot", self.player)
+                    pool.append(item)
+                    progcheck += 1
+            while len(pool) < 75:
                 item = RiftWizardItem("Mana Dot", self.player)
                 pool.append(item)
 
         # Always 75 items on Mordred goal so this fills the diff between number of double dots and rest of the locations
-        if self.multiworld.goal[self.player] == 0:
-            while len(pool) < 75:
+        if self.multiworld.goal[self.player] == 1:
+            progcheck = (ddcheck *2)
+            while progcheck < progreq:
+                if len(pool) == (self.multiworld.floor_goal[self.player]-1)*3:
+                    item = RiftWizardItem("Trap", self.player)
+                    pool.remove(item)
+                if len(pool) < (self.multiworld.floor_goal[self.player]-1)*3:
+                    item = RiftWizardItem("Mana Dot", self.player)
+                    pool.append(item)
+                    progcheck += 1
+            while len(pool) < (self.multiworld.floor_goal[self.player]-1)*3:
                 item = RiftWizardItem("Mana Dot", self.player)
                 pool.append(item)
 
@@ -104,6 +169,7 @@ class RiftWizardWorld(World):
         for option_name in riftwizard_options:
             option = getattr(self.multiworld, option_name)[self.player]
             slot_data[option_name] = option.value
+        print(slot_data)
         return slot_data
 
 
