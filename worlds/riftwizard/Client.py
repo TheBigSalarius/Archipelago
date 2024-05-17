@@ -36,6 +36,20 @@ class RiftWizardClientCommandProcessor(ClientCommandProcessor):
             self.ctx.deathlink_enabled = not self.ctx.deathlink_enabled
             Utils.async_start(self.ctx.update_death_link(self.ctx.deathlink_enabled), name="Update Deathlink")
 
+    def _cmd_clearcache(self):
+        """Manually purge old seed data. (Must Restart Client)"""
+        self.output(f"Clearing old saves.")
+        options = Utils.get_settings()
+        root_directory = os.path.join(options["riftwizard_options"]["root_directory"])
+        self.root_game_communication_path = os.path.join(root_directory, "mods", "ArchipelagoMod", "AP")
+        for root, dirs, files in os.walk(self.root_game_communication_path, topdown=False):
+            for f in files:
+                os.remove(root + "/" + f)
+            for d in dirs:
+                os.rmdir(root + "/" + d)
+
+
+
 class RiftWizardContext(CommonContext):
     command_processor: int = RiftWizardClientCommandProcessor
     game = "Rift Wizard"
@@ -47,20 +61,17 @@ class RiftWizardContext(CommonContext):
         self.syncing = False
         self.deathlink_enabled = False
         if "appdata" in os.environ:
-            options = Utils.get_options()
+            options = Utils.get_settings()
             root_directory = os.path.join(options["riftwizard_options"]["root_directory"])
             mod_riftwizard = os.path.join(root_directory, "mods")
-            self.game_communication_path = os.path.join(root_directory, "mods", "ArchipelagoMod", "AP")
-            self.send_deathlink_file = os.path.join(self.game_communication_path, "deathlinkout")
+            self.root_game_communication_path = os.path.join(root_directory, "mods", "ArchipelagoMod", "AP")
+            self.game_communication_path = ""
+            if not os.path.exists(self.root_game_communication_path):
+                os.makedirs(self.root_game_communication_path)
 
             if not os.path.isfile(os.path.join(root_directory, "RiftWizard.exe")):
                 print_error_and_close("RiftWizardClient couldn't find RiftWizard.exe. "
                                       "Ensure host.yaml points to the RiftWizard folder and the game is installed")
-
-            if not os.path.exists(self.game_communication_path):
-                os.makedirs(self.game_communication_path)
-            self.remove_communication_files()
-            atexit.register(self.remove_communication_files)
             if not os.path.isdir(mod_riftwizard):
                 print_error_and_close("RiftWizardClient couldn't find /mods folder in RiftWizard Directory. "
                                       "Reinstall RiftWizard to attempt to fix this error")
@@ -78,8 +89,7 @@ class RiftWizardContext(CommonContext):
 
     async def connection_closed(self):
         await super(RiftWizardContext, self).connection_closed()
-        self.remove_communication_files()
-
+        self.remove_slot_files()
     @property
     def endpoints(self):
         if self.server:
@@ -89,27 +99,36 @@ class RiftWizardContext(CommonContext):
 
     async def shutdown(self):
         await super(RiftWizardContext, self).shutdown()
-        self.remove_communication_files()
+        self.remove_slot_files()
 
-    # Clears the AP folder (ensures a fresh state on next connect)
-    def remove_communication_files(self):
-        for root, dirs, files in os.walk(self.game_communication_path):
-            for file in files:
-                os.remove(root + "/" + file)
+    def remove_slot_files(self):
+        os.remove(self.root_game_communication_path + "/" + "AP_settings.json")
 
     def on_package(self, cmd: str, args: dict):
         if cmd in {"Connected"}:
+
+            options = Utils.get_settings()
+            root_directory = os.path.join(options["riftwizard_options"]["root_directory"])
+
+            # Create file for mod containing slot data
+            filename = f"AP_settings.json"
+            with open(os.path.join(self.root_game_communication_path, filename), 'w') as f:
+                json.dump(args["slot_data"], f)
+                f.close()
+
+            seed = args["slot_data"]["seed"]
+            print(seed)
+            self.game_communication_path = os.path.join(root_directory, "mods", "ArchipelagoMod", "AP", seed)
+            print(self.game_communication_path)
+            self.send_deathlink_file = os.path.join(self.game_communication_path, "deathlinkout")
+            if not os.path.exists(self.game_communication_path):
+                os.makedirs(self.game_communication_path)
+
             # Switches on Deathlink and Tag if option is on (refreshes on connect)
             # Doesn't look ideal, better to check how to add tag by default
             if 'death_link' in args['slot_data'] and args['slot_data']['death_link']:
                 self.deathlink_enabled = True
                 Utils.async_start(self.update_death_link(self.deathlink_enabled), name="Update Deathlink")
-
-            # Create file for mod containing slot data
-            filename = f"AP_settings.json"
-            with open(os.path.join(self.game_communication_path, filename), 'w') as f:
-                json.dump(args["slot_data"], f)
-                f.close()
 
             # Create files of previously checked locations
             for ss in self.checked_locations:

@@ -14,17 +14,30 @@ class Goal(TextChoice):
 
 
 class FloorGoal(Range):
-    """Specifies the floor to complete for victory when "reach floor" goal is set."""
+    """Specifies the floor to reach for victory when "reach floor" goal is set."""
     display_name = "Floor Goal"
-    range_start = 10
+    range_start = 11
     range_end = 25
     default = 25
 
+class Difficulty(TextChoice):
+    """
+    Adjusts logic to make the game easier or harder.
+
+    Easy: 3 mana in logic per floor
+    Medium: 2 mana in logic per floor
+    Hard: 1 mana in logic per floor
+    """
+    display_name = "Difficulty"
+    option_easy = 3
+    option_medium = 2
+    option_hard = 1
+    default = option_easy
 
 class DoubleManaDots(Range):
     """
     Specifies the amount of Double Mana Dots item to be in the item pool (replaces Mana Dots)
-    This can be used to make the overall game easier.
+    This can be used to make the overall game easier or allow for more traps.
     """
     display_name = "Double Mana Dots"
     range_start = 0
@@ -52,12 +65,23 @@ class ConsumableStep(Range):
     range_end = 20
     default = 10
 
+class Traps(Range):
+    """
+    Specifies the amount of traps to be added to the pool.
+    (May contain fewer traps than specified if mana dots are required for logic)
+    """
+    display_name = "Traps"
+    range_start = 0
+    range_end = 20
+    default = 0
 
 riftwizard_options: typing.Dict[str, type(Option)] = {
     "goal": Goal,
     "floor_goal": FloorGoal,
+    "difficulty": Difficulty,
     "double_mana_dots": DoubleManaDots,
     "consumable_count": ConsumableCount,
     "consumable_steps": ConsumableStep,
+    "traps": Traps,
     "death_link": DeathLink
 }
