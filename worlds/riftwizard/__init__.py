@@ -1,13 +1,14 @@
+import settings
 import string
-
+import typing
 
 from BaseClasses import Entrance, Item, ItemClassification, Location, MultiWorld, Region, Tutorial
 from .Items import event_item_pairs, item_pool, item_table
 from .Locations import location_table
 from .Regions import create_regions
 from .Rules import set_rules
-from ..AutoWorld import WebWorld, World
-from .Options import riftwizard_options
+from ..AutoWorld import World, WebWorld
+from .Options import RiftWizardOptions
 from worlds.LauncherComponents import Component, components, Type, launch_subprocess
 import worlds.LauncherComponents as LauncherComponents
 def launch_client():
@@ -21,6 +22,17 @@ LauncherComponents.components.append(
         component_type=LauncherComponents.Type.CLIENT
     )
 )
+
+class RiftWizardSettings(settings.Group):
+    class RootDirectory(settings.UserFolderPath):
+        """
+        Locate the RiftWizard root directory on your system.
+        This is used by the RiftWizard client, so it knows where to send communication files to
+        """
+        description = "RiftWizard root directory"
+
+    root_directory: RootDirectory = RootDirectory("C:/Program Files (x86)/Steam/steamapps/common/Rift Wizard/RiftWizard")
+
 class RiftWizardWeb(WebWorld):
     theme = 'stone'
     tutorials = [Tutorial(
@@ -41,10 +53,11 @@ class RiftWizardWorld(World):
     a series of procedurally generated challenges to defeat your nemesis.
     """
 
-    option_definitions = riftwizard_options
+    options: RiftWizardOptions
+    options_dataclass = RiftWizardOptions
+    settings: typing.ClassVar[RiftWizardSettings]
     game = "Rift Wizard"
     topology_present = False
-    data_version = 0
     web = RiftWizardWeb()
 
     required_client_version = (0, 6, 1)
@@ -55,21 +68,21 @@ class RiftWizardWorld(World):
     def create_items(self):
 
         #Progression requirements for Mordred and Procedural goals
-        if self.multiworld.end_goal[self.player] == 1:
-            progreq = self.multiworld.difficulty[self.player] * (self.multiworld.floor_goal[self.player]-1)
+        if self.options.end_goal.value == 1:
+            progreq = self.options.difficulty.value * (self.options.floor_goal.value-1)
 
-        if self.multiworld.end_goal[self.player] == 0:
-            progreq = self.multiworld.difficulty[self.player] * 25
+        if self.options.end_goal.value == 0:
+            progreq = self.options.difficulty.value * 25
 
 
         progcheck = 0
-        ddcheck = self.multiworld.double_mana_dots[self.player]
+        ddcheck = self.options.double_mana_dots.value
 
         # Create item pool
         pool = []
 
         # Add any traps first (based on options)
-        for i in range(self.multiworld.traps[self.player]):
+        for i in range(self.options.traps.value):
             item = RiftWizardItem('Trap', self.player)
         #    item2 = RiftWizardItem('Double Mana Dot', self.player)
         #    if self.multiworld.traps[self.player]
@@ -77,7 +90,7 @@ class RiftWizardWorld(World):
             pool.append(item)
 
         # Add any double dots first (based on options)
-        for i in range(self.multiworld.double_mana_dots[self.player]):
+        for i in range(self.options.double_mana_dots.value):
             item = RiftWizardItem('Double Mana Dot', self.player)
             pool.append(item)
         #                for amount in range(item_pool.get(name, 0)):
@@ -85,8 +98,8 @@ class RiftWizardWorld(World):
         #                    pool.append(item)
 
         # Removes Double Dots/Traps if too many are randomly chosen when floor goal limits the pool
-        if self.multiworld.end_goal[self.player] == 1:
-            while len(pool) > (self.multiworld.floor_goal[self.player]-1)*3:
+        if self.options.end_goal.value == 1:
+            while len(pool) > (self.options.floor_goal.value-1)*3:
                 print(ddcheck *2)
                 print(len(pool))
                 if (ddcheck *2) > progreq + 1 :
@@ -98,7 +111,7 @@ class RiftWizardWorld(World):
                     pool.remove(item)
 
         # Removes Double Dots/Traps if too many are chosen for Mordred goal
-        if self.multiworld.end_goal[self.player] == 0:
+        if self.options.end_goal.value == 0:
             while len(pool) > 75:
                 if (ddcheck *2) > progreq + 1 :
                     item = RiftWizardItem('Double Mana Dot', self.player)
@@ -109,7 +122,7 @@ class RiftWizardWorld(World):
                     pool.remove(item)
 
         # Always 75 items on Mordred goal so this fills the diff between number of double dots and rest of the locations
-        if self.multiworld.end_goal[self.player] == 0:
+        if self.options.end_goal.value == 0:
             progcheck = (ddcheck *2)
             while progcheck < progreq:
                 if len(pool) == 75:
@@ -124,22 +137,22 @@ class RiftWizardWorld(World):
                 pool.append(item)
 
         # Always 75 items on Mordred goal so this fills the diff between number of double dots and rest of the locations
-        if self.multiworld.end_goal[self.player] == 1:
+        if self.options.end_goal.value == 1:
             progcheck = (ddcheck *2)
             while progcheck < progreq:
-                if len(pool) == (self.multiworld.floor_goal[self.player]-1)*3:
+                if len(pool) == (self.options.floor_goal.value-1)*3:
                     item = RiftWizardItem("Trap", self.player)
                     pool.remove(item)
-                if len(pool) < (self.multiworld.floor_goal[self.player]-1)*3:
+                if len(pool) < (self.options.floor_goal.value-1)*3:
                     item = RiftWizardItem("Mana Dot", self.player)
                     pool.append(item)
                     progcheck += 1
-            while len(pool) < (self.multiworld.floor_goal[self.player]-1)*3:
+            while len(pool) < (self.options.floor_goal.value-1)*3:
                 item = RiftWizardItem("Mana Dot", self.player)
                 pool.append(item)
 
         # Add the number of consumables equal to the consumable count (number of consumable locations added)
-        for i in range(self.multiworld.consumable_count[self.player]):
+        for i in range(self.options.consumable_count.value):
             item = RiftWizardItem("Consumable", self.player)
             pool.append(item)
 
@@ -153,19 +166,18 @@ class RiftWizardWorld(World):
         self.multiworld.completion_condition[self.player] = lambda state: state.has("Victory", self.player)
 
     def set_rules(self):
-        set_rules(self.multiworld, self.player)
+        set_rules(self.multiworld, self.player, self.options)
 
     def create_item(self, name: str) -> Item:
         return RiftWizardItem(name, self.player)
 
     def create_regions(self):
-        create_regions(self.multiworld, self.player)
+        create_regions(self.multiworld, self.player, self.options)
 
     def fill_slot_data(self) -> dict:
         # Adds our options to the slot data to be used by the mod
         slot_data = {
-            'seed': "".join(self.multiworld.per_slot_randoms
-                            [self.player].choice(string.ascii_letters) for i in range(16)),
+            'seed': "".join(self.random.choice(string.ascii_letters) for i in range(16)),
             'end_goal': self.options.end_goal.value,
             'floor_goal': self.options.floor_goal.value,
             'difficulty': self.options.difficulty.value,
@@ -173,7 +185,7 @@ class RiftWizardWorld(World):
             'consumable_count': self.options.consumable_count.value,
             'consumable_steps': self.options.consumable_steps.value,
             'traps': self.options.traps.value,
-            'death_link': self.options.death_link.value,
+            'death_link': self.options.death_link.value
         }
         print(slot_data)
         return slot_data

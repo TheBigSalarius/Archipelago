@@ -1,6 +1,7 @@
 import typing
-from Options import TextChoice, Option, Range, Toggle, DeathLink
-
+from dataclasses import dataclass
+from worlds.AutoWorld import PerGameCommonOptions
+from Options import TextChoice, Choice, Option, Range, DeathLink
 
 class Goal(TextChoice):
     """
@@ -75,13 +76,13 @@ class Traps(Range):
     range_end = 20
     default = 0
 
-riftwizard_options: typing.Dict[str, type(Option)] = {
-    "end_goal": Goal,
-    "floor_goal": FloorGoal,
-    "difficulty": Difficulty,
-    "double_mana_dots": DoubleManaDots,
-    "consumable_count": ConsumableCount,
-    "consumable_steps": ConsumableStep,
-    "traps": Traps,
-    "death_link": DeathLink
-}
+@dataclass
+class RiftWizardOptions(PerGameCommonOptions):
+    end_goal: Goal
+    floor_goal: FloorGoal
+    difficulty: Difficulty
+    double_mana_dots: DoubleManaDots
+    consumable_count: ConsumableCount
+    consumable_steps: ConsumableStep
+    traps: Traps
+    death_link: DeathLink
