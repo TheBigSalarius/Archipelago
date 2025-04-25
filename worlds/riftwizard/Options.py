@@ -76,7 +76,7 @@ class Traps(Range):
     default = 0
 
 riftwizard_options: typing.Dict[str, type(Option)] = {
-    "goal": Goal,
+    "end_goal": Goal,
     "floor_goal": FloorGoal,
     "difficulty": Difficulty,
     "double_mana_dots": DoubleManaDots,

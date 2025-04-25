@@ -47,16 +47,18 @@ class RiftWizardWorld(World):
     data_version = 0
     web = RiftWizardWeb()
 
+    required_client_version = (0, 6, 1)
+
     item_name_to_id = {name: data.code for name, data in item_table.items()}
     location_name_to_id = location_table
 
     def create_items(self):
 
         #Progression requirements for Mordred and Procedural goals
-        if self.multiworld.goal[self.player] == 1:
+        if self.multiworld.end_goal[self.player] == 1:
             progreq = self.multiworld.difficulty[self.player] * (self.multiworld.floor_goal[self.player]-1)
 
-        if self.multiworld.goal[self.player] == 0:
+        if self.multiworld.end_goal[self.player] == 0:
             progreq = self.multiworld.difficulty[self.player] * 25
 
 
@@ -83,7 +85,7 @@ class RiftWizardWorld(World):
         #                    pool.append(item)
 
         # Removes Double Dots/Traps if too many are randomly chosen when floor goal limits the pool
-        if self.multiworld.goal[self.player] == 1:
+        if self.multiworld.end_goal[self.player] == 1:
             while len(pool) > (self.multiworld.floor_goal[self.player]-1)*3:
                 print(ddcheck *2)
                 print(len(pool))
@@ -96,7 +98,7 @@ class RiftWizardWorld(World):
                     pool.remove(item)
 
         # Removes Double Dots/Traps if too many are chosen for Mordred goal
-        if self.multiworld.goal[self.player] == 0:
+        if self.multiworld.end_goal[self.player] == 0:
             while len(pool) > 75:
                 if (ddcheck *2) > progreq + 1 :
                     item = RiftWizardItem('Double Mana Dot', self.player)
@@ -107,7 +109,7 @@ class RiftWizardWorld(World):
                     pool.remove(item)
 
         # Always 75 items on Mordred goal so this fills the diff between number of double dots and rest of the locations
-        if self.multiworld.goal[self.player] == 0:
+        if self.multiworld.end_goal[self.player] == 0:
             progcheck = (ddcheck *2)
             while progcheck < progreq:
                 if len(pool) == 75:
@@ -122,7 +124,7 @@ class RiftWizardWorld(World):
                 pool.append(item)
 
         # Always 75 items on Mordred goal so this fills the diff between number of double dots and rest of the locations
-        if self.multiworld.goal[self.player] == 1:
+        if self.multiworld.end_goal[self.player] == 1:
             progcheck = (ddcheck *2)
             while progcheck < progreq:
                 if len(pool) == (self.multiworld.floor_goal[self.player]-1)*3:
@@ -163,11 +165,16 @@ class RiftWizardWorld(World):
         # Adds our options to the slot data to be used by the mod
         slot_data = {
             'seed': "".join(self.multiworld.per_slot_randoms
-                            [self.player].choice(string.ascii_letters) for i in range(16))
+                            [self.player].choice(string.ascii_letters) for i in range(16)),
+            'end_goal': self.options.end_goal.value,
+            'floor_goal': self.options.floor_goal.value,
+            'difficulty': self.options.difficulty.value,
+            'double_mana_dots': self.options.double_mana_dots.value,
+            'consumable_count': self.options.consumable_count.value,
+            'consumable_steps': self.options.consumable_steps.value,
+            'traps': self.options.traps.value,
+            'death_link': self.options.death_link.value,
         }
-        for option_name in riftwizard_options:
-            option = getattr(self.multiworld, option_name)[self.player]
-            slot_data[option_name] = option.value
         print(slot_data)
         return slot_data
 
@@ -202,8 +209,12 @@ class RiftWizardItem(Item):
 
     def __init__(self, name, player: int = None):
         item_data = item_table[name]
+        if item_data.trap:
+            classification = ItemClassification.trap
+        else:
+            classification = ItemClassification.progression if item_data.progression else ItemClassification.filler
         super(RiftWizardItem, self).__init__(
             name,
-            ItemClassification.progression if item_data.progression else ItemClassification.filler,
+            classification,
             item_data.code, player
         )

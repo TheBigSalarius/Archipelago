@@ -8,13 +8,14 @@ class ItemData(typing.NamedTuple):
     code: typing.Optional[int]
     progression: bool
     event: bool = False
+    trap: bool = False
 
 
 item_table: Dict[str, ItemData] = {
     'Mana Dot': ItemData(18001, True),
     'Double Mana Dot': ItemData(18002, True),
     'Consumable': ItemData(18003, False),
-    'Trap': ItemData(18004, False),
+    'Trap': ItemData(18004, False, trap=True),
     # Event Items
     'Victory': ItemData(None, True, True)
 
