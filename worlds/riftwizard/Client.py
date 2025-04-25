@@ -60,26 +60,22 @@ class RiftWizardContext(CommonContext):
         self.send_index: int = 0
         self.syncing = False
         self.deathlink_enabled = False
-        if "appdata" in os.environ:
-            options = Utils.get_settings()
-            root_directory = os.path.join(options["riftwizard_options"]["root_directory"])
-            mod_riftwizard = os.path.join(root_directory, "mods")
-            self.root_game_communication_path = os.path.join(root_directory, "mods", "ArchipelagoMod", "AP")
-            self.game_communication_path = ""
-            if not os.path.exists(self.root_game_communication_path):
-                os.makedirs(self.root_game_communication_path)
-
-            if not os.path.isfile(os.path.join(root_directory, "RiftWizard.exe")):
-                print_error_and_close("RiftWizardClient couldn't find RiftWizard.exe. "
-                                      "Ensure host.yaml points to the RiftWizard folder and the game is installed")
-            if not os.path.isdir(mod_riftwizard):
-                print_error_and_close("RiftWizardClient couldn't find /mods folder in RiftWizard Directory. "
-                                      "Reinstall RiftWizard to attempt to fix this error")
-            if not os.path.isdir(mod_riftwizard + "/ArchipelagoMod"):
-                print_error_and_close("RiftWizardClient couldn't find the Archipelago Mod for RiftWizard. "
-                                      "Ensure the Archipelago Mod is in the /mods folder of the RiftWizard Directory")
-        else:
-            print_error_and_close("RiftWizardClient couldn't detect system type. ")
+        options = Utils.get_settings()
+        root_directory = os.path.join(options["riftwizard_options"]["root_directory"])
+        mod_riftwizard = os.path.join(root_directory, "mods")
+        self.root_game_communication_path = os.path.join(root_directory, "mods", "ArchipelagoMod", "AP")
+        self.game_communication_path = ""
+        if not os.path.exists(self.root_game_communication_path):
+            os.makedirs(self.root_game_communication_path)
+        if not os.path.isfile(os.path.join(root_directory, "RiftWizard.exe")):
+            print_error_and_close("RiftWizardClient couldn't find RiftWizard.exe. "
+                                  "Ensure host.yaml points to the RiftWizard folder and the game is installed")
+        if not os.path.isdir(mod_riftwizard):
+            print_error_and_close("RiftWizardClient couldn't find /mods folder in RiftWizard Directory. "
+                                  "Reinstall RiftWizard to attempt to fix this error")
+        if not os.path.isdir(mod_riftwizard + "/ArchipelagoMod"):
+            print_error_and_close("RiftWizardClient couldn't find the Archipelago Mod for RiftWizard. "
+                                  "Ensure the Archipelago Mod is in the /mods folder of the RiftWizard Directory")
 
     async def server_auth(self, password_requested: bool = False):
         if password_requested and not self.password:
